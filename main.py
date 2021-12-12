@@ -22,6 +22,7 @@ class App:
             self.snake = Snake()
 
         while True:
+            pg.display.set_caption(str(self.clock.get_fps()))
             if not self.fruit:
                 self.fruit = Fruit()
 
@@ -40,7 +41,11 @@ class App:
 
             if self.snake.rect.colliderect(self.fruit.rect):
                 self.fruit = None
-
+                if self.snake.destination == "RIGHT":
+                    self.rect = pg.Rect((self.snake.rect[0] - 55, self.snake.rect[1]), (25, 25))
+                    self.surf = pg.Surface((25, 25))
+                    self.surf.fill((0, 200, 250))
+                    self.snake.snake.append((self.rect, self.surf))
             self.screen.fill((0, 0, 0))
             if self.fruit:
                 self.fruit.draw()
@@ -74,7 +79,9 @@ class Snake:
         self.snake = [(self.rect, self.surf)]
 
     def draw(self):
-
+        if len(self.snake) > 1:
+            for i in range(len(self.snake), 0, -1):
+                self.snake[i-1][0][0], self.snake[i-1][0][1] = self.snake[i-2][0][0], self.snake[i-2][0][1]
         if self.destination == "RIGHT":
             if self.rect[0] <= app.WIDTH + 25:
                 self.rect[0] += self.speed
@@ -95,7 +102,10 @@ class Snake:
                 self.rect[0] -= self.speed
             else:
                 self.rect[0] = app.WIDTH
-        app.screen.blit(self.surf, self.rect)
+
+        for j in self.snake:
+            app.screen.blit(j[1], j[0])
+        print(self.snake)
 
 
 app = App()
