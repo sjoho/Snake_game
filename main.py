@@ -2,11 +2,12 @@ import pygame as pg
 from pygame.locals import *
 import random
 
+pg.init()
+pg.mixer.music.load("audio/48bb90af8e1e401.mp3")
 
 class App:
 
     def __init__(self):
-        pg.init()
         self.clock = pg.time.Clock()
         self.WIDTH = 1200
         self.HEIGHT = 800
@@ -15,6 +16,11 @@ class App:
         self.snake = None
         self.background = pg.image.load("3.jpg")
         self.pickup = pg.mixer.Sound("audio/24f110d27ad0929.ogg")
+        self.game = True
+        self.round = False
+        self.font = pg.font.Font(None, 64)
+        pg.display.set_caption("SUPER SNAKE")
+
 
     def run(self):
 
@@ -23,46 +29,74 @@ class App:
         if not self.snake:
             self.snake = Snake()
 
-        while True:
-            pg.display.set_caption(str(self.clock.get_fps()))
-            if not self.fruit:
-                self.fruit = Fruit()
-
-            for event in pg.event.get():
-                if event.type == QUIT:
-                    pg.quit()
-                if event.type == KEYDOWN:
-                    if event.key == K_s and not self.snake.destination == "UP":
-                        self.snake.destination = "DOWN"
-                    elif event.key == K_w and not self.snake.destination == "DOWN":
-                        self.snake.destination = "UP"
-                    elif event.key == K_d and not self.snake.destination == "LEFT":
-                        self.snake.destination = "RIGHT"
-                    elif event.key == K_a and not self.snake.destination == "RIGHT":
-                        self.snake.destination = "LEFT"
-
-            if self.snake.rect.colliderect(self.fruit.rect):
-                self.fruit = None
-                self.pickup.play()
-                if self.snake.destination == "RIGHT":
-                    self.rect = pg.Rect((self.snake.snake[-1][0][0] - 30, self.snake.snake[-1][0][1]), (25, 25))
-                elif self.snake.destination == "LEFT":
-                    self.rect = pg.Rect((self.snake.snake[-1][0][0] + 30, self.snake.snake[-1][0][1]), (25, 25))
-                elif self.snake.destination == "UP":
-                    self.rect = pg.Rect((self.snake.snake[-1][0][0], self.snake.snake[-1][0][1] + 30), (25, 25))
-                elif self.snake.destination == "DOWN":
-                    self.rect = pg.Rect((self.snake.snake[-1][0][0] - 30, self.snake.snake[-1][0][1]), (25, 25))
-                self.surf = pg.Surface((25, 25))
-                self.surf.fill((50, 50, 50))
-                self.snake.snake.append((self.rect, self.surf))
-
+        while self.game:
 
             self.screen.blit(self.background, (0, 0))
-            if self.fruit:
-                self.fruit.draw()
-            self.snake.draw()
+
+            self.surf = pg.Surface((350, 100))
+            self.surf.fill((0, 191, 240))
+            self.text = self.font.render("ИГРАТЬ", True, (155, 0, 0))
+            self.surf.blit(self.text, ((350 - self.font.size("ИГРАТЬ")[0]) / 2, 20))
+            self.rect = pg.Rect(((self.WIDTH - 350) / 2, 100), (350, 100))
+            self.screen.blit(self.surf, self.rect)
+
+            self.surf2 = pg.Surface((176, 100))
+            self.surf2.fill((0, 191, 240))
+            self.text2 = self.font.render("ВЫХОД", True, (155, 0, 0))
+            self.surf2.blit(self.text2, ((176 - self.font.size("ВЫХОД")[0]) / 2, 20))
+            self.rect2 = pg.Rect(((self.WIDTH - 176) / 2, 300), (176, 100))
+            self.screen.blit(self.surf2, self.rect2)
+
+            for event in pg.event.get():
+                if event.type == MOUSEBUTTONDOWN:
+                    if self.rect.collidepoint(pg.mouse.get_pos()):
+                        self.round = True
+                        pg.mixer.music.play(-1)
+                    if self.rect2.collidepoint(pg.mouse.get_pos()):
+                        pg.quit()
+
             pg.display.update()
-            self.clock.tick(30)
+            while self.round:
+
+
+                if not self.fruit:
+                    self.fruit = Fruit()
+
+                for event in pg.event.get():
+                    if event.type == QUIT:
+                        pg.quit()
+                    if event.type == KEYDOWN:
+                        if event.key == K_s and not self.snake.destination == "UP":
+                            self.snake.destination = "DOWN"
+                        elif event.key == K_w and not self.snake.destination == "DOWN":
+                            self.snake.destination = "UP"
+                        elif event.key == K_d and not self.snake.destination == "LEFT":
+                            self.snake.destination = "RIGHT"
+                        elif event.key == K_a and not self.snake.destination == "RIGHT":
+                            self.snake.destination = "LEFT"
+
+                if self.snake.rect.colliderect(self.fruit.rect):
+                    self.fruit = None
+                    self.pickup.play()
+                    if self.snake.destination == "RIGHT":
+                        self.rect = pg.Rect((self.snake.snake[-1][0][0] - 30, self.snake.snake[-1][0][1]), (25, 25))
+                    elif self.snake.destination == "LEFT":
+                        self.rect = pg.Rect((self.snake.snake[-1][0][0] + 30, self.snake.snake[-1][0][1]), (25, 25))
+                    elif self.snake.destination == "UP":
+                        self.rect = pg.Rect((self.snake.snake[-1][0][0], self.snake.snake[-1][0][1] + 30), (25, 25))
+                    elif self.snake.destination == "DOWN":
+                        self.rect = pg.Rect((self.snake.snake[-1][0][0] - 30, self.snake.snake[-1][0][1]), (25, 25))
+                    self.surf = pg.Surface((25, 25))
+                    self.surf.fill((50, 50, 50))
+                    self.snake.snake.append((self.rect, self.surf))
+
+
+                self.screen.blit(self.background, (0, 0))
+                if self.fruit:
+                    self.fruit.draw()
+                self.snake.draw()
+                pg.display.update()
+                self.clock.tick(30)
 
 
 class Fruit:
@@ -88,7 +122,7 @@ class Snake:
         self.surf.fill((0, 0, 0))
         self.destination = "RIGHT"
         self.snake = [(self.rect, self.surf)]
-        print(self.rect.center)
+
 
     def draw(self):
 
