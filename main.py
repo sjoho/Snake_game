@@ -3,7 +3,6 @@ from pygame.locals import *
 import random
 
 
-
 class App:
 
     def __init__(self):
@@ -20,6 +19,8 @@ class App:
         self.round = False
         self.font = pg.font.Font(None, 64)
         self.walls = None
+        self.score = 0
+        self.last_score = 0
         pg.display.set_caption("SUPER SNAKE")
         pg.mixer.music.load("audio/48bb90af8e1e401.mp3")
 
@@ -56,14 +57,18 @@ class App:
                 if event.type == MOUSEBUTTONDOWN:
                     if self.rect.collidepoint(pg.mouse.get_pos()):
                         self.round = True
-                       # pg.mixer.music.play(-1)
+                        pg.mixer.music.play(-1)
                     if self.rect2.collidepoint(pg.mouse.get_pos()):
                         pg.quit()
                 elif event.type == QUIT:
                     pg.quit()
 
+
+            self.draw_score(0)
             pg.display.update()
             while self.round:
+
+                self.last_score = 0
 
                 if not self.fruit:
                     self.fruit = Fruit()
@@ -84,6 +89,7 @@ class App:
                 if self.snake.rect.colliderect(self.fruit.rect):
                     self.fruit = None
                     self.pickup.play()
+                    self.score += 10
                     if self.snake.destination == "RIGHT":
                         self.rect = pg.Rect((self.snake.snake[-1][0][0] - 30, self.snake.snake[-1][0][1]), (25, 25))
                     elif self.snake.destination == "LEFT":
@@ -101,6 +107,9 @@ class App:
                         self.round = False
                         self.snake.__init__()
                         self.walls = []
+                        pg.mixer.music.stop()
+                        self.last_score = self.score
+                        self.score = 0
                     elif self.fruit and i.rect.colliderect(self.fruit.rect):
                         self.fruit = None
 
@@ -110,9 +119,28 @@ class App:
                     self.fruit.draw()
                 for i in self.walls:
                     i.draw()
+
+                self.draw_score(1)
                 self.snake.draw()
                 pg.display.update()
                 self.clock.tick(30)
+
+    def draw_score(self, key):
+        if key == 1:
+            self.surf = pg.Surface((350, 100))
+            self.surf.fill((0, 191, 240))
+            self.text = self.font.render("СЧЕТ: " + str(self.score), True, (155, 0, 0))
+            self.surf.blit(self.text, (20, 20))
+            self.rect = pg.Rect((self.WIDTH - 350, self.HEIGHT - 100), (350, 100))
+            self.screen.blit(self.surf, self.rect)
+
+        elif key == 0:
+            self.surf = pg.Surface((350, 100))
+            self.surf.fill((0, 191, 240))
+            self.text = self.font.render("СЧЕТ: " + str(self.last_score), True, (155, 0, 0))
+            self.surf.blit(self.text, (20, 20))
+            self.rect = pg.Rect(((self.WIDTH - 350) / 2, self.HEIGHT - 100), (350, 100))
+            self.screen.blit(self.surf, self.rect)
 
 
 class Fruit:
@@ -139,7 +167,6 @@ class Snake:
         self.destination = "RIGHT"
         self.snake = [(self.rect, self.surf)]
         self.get_touched = False
-
 
     def draw(self):
 
@@ -171,6 +198,8 @@ class Snake:
             pg.mixer.music.stop()
             self.__init__()
             app.walls = []
+            app.last_score = app.score
+            app.score = 0
 
         if len(self.snake) > 1:
             for i in range(0, len(self.snake) - 1):
